@@ -71,10 +71,30 @@ router.put('/admin/:id', isAdmin, async (req, res) => {
             let modified = false;
             user.testsTaken.forEach(test => {
                 if (String(test.mockId) === String(mock._id)) {
-                    // Strategy Formula: (Correct * +X) - (Incorrect * -Y)
-                    const newScore = (test.correct * mock.positiveMarks) - (test.incorrect * mock.negativeMarks);
-                    if (test.score !== newScore) {
+                    let newScore = 0;
+                    let correct = 0;
+                    let incorrect = 0;
+
+                    test.answers.forEach(ans => {
+                        const question = mock.questions.find(q => String(q._id) === String(ans.questionId));
+                        if (question) {
+                            if (ans.selectedOption === question.correctOptionIndex) {
+                                correct++;
+                                newScore += (question.positiveMarks ?? mock.positiveMarks);
+                            } else {
+                                incorrect++;
+                                newScore -= (question.negativeMarks ?? mock.negativeMarks);
+                            }
+                        }
+                    });
+
+                    const unanswered = mock.questions.length - (correct + incorrect);
+
+                    if (test.score !== newScore || test.correct !== correct || test.incorrect !== incorrect || test.unanswered !== unanswered) {
                         test.score = newScore;
+                        test.correct = correct;
+                        test.incorrect = incorrect;
+                        test.unanswered = unanswered;
                         modified = true;
                     }
                 }
@@ -111,13 +131,21 @@ router.post('/:id/submit', isUser, async (req, res) => {
         const mock = await Mock.findById(mockId);
         if (!mock) return res.status(404).json({ error: 'Mock not found' });
 
+        let score = 0;
         let correct = 0;
         let incorrect = 0;
         let unanswered = 0;
+        let earnedPositivePoints = 0;
+        let lostNegativePoints = 0;
+        let totalMaxScore = 0;
 
         const recordedAnswers = [];
 
         mock.questions.forEach((q, index) => {
+            const pMarks = q.positiveMarks ?? mock.positiveMarks;
+            const nMarks = q.negativeMarks ?? mock.negativeMarks;
+            totalMaxScore += pMarks;
+
             // Find the user's answer for this question index
             const userAns = answers.find(a => String(a.questionIndex) === String(index));
 
@@ -126,16 +154,17 @@ router.post('/:id/submit', isUser, async (req, res) => {
 
                 if (userAns.selectedOption === q.correctOptionIndex) {
                     correct++;
+                    score += pMarks;
+                    earnedPositivePoints += pMarks;
                 } else {
                     incorrect++;
+                    score -= nMarks;
+                    lostNegativePoints += nMarks;
                 }
             } else {
                 unanswered++;
             }
         });
-
-        // Strategy Formula: (Correct * +X) - (Incorrect * -Y)
-        const score = (correct * mock.positiveMarks) - (incorrect * mock.negativeMarks);
 
         // Save to user profile
         const user = await User.findById(userId);
@@ -158,6 +187,8 @@ router.post('/:id/submit', isUser, async (req, res) => {
                 options: q.options,
                 correctOptionIndex: q.correctOptionIndex,
                 explanation: q.explanation,
+                positiveMarks: q.positiveMarks ?? mock.positiveMarks,
+                negativeMarks: q.negativeMarks ?? mock.negativeMarks,
                 userSelectedOption: userAns && typeof userAns.selectedOption === 'number' ? userAns.selectedOption : null
             };
         });
@@ -172,6 +203,9 @@ router.post('/:id/submit', isUser, async (req, res) => {
                 totalQuestions: mock.questions.length,
                 positiveMarks: mock.positiveMarks,
                 negativeMarks: mock.negativeMarks,
+                earnedPositivePoints,
+                lostNegativePoints,
+                totalMaxScore,
                 detailedResults
             }
         });

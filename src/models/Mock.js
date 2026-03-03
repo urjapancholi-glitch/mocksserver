@@ -34,7 +34,9 @@ const MockSchema = new mongoose.Schema({
                 { type: String, required: true }
             ],
             correctOptionIndex: { type: Number, required: true },
-            explanation: { type: String, default: '' }
+            explanation: { type: String, default: '' },
+            positiveMarks: { type: Number },
+            negativeMarks: { type: Number }
         }
     ],
     createdAt: {
