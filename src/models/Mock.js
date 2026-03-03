@@ -33,7 +33,8 @@ const MockSchema = new mongoose.Schema({
             options: [
                 { type: String, required: true }
             ],
-            correctOptionIndex: { type: Number, required: true }
+            correctOptionIndex: { type: Number, required: true },
+            explanation: { type: String, default: '' }
         }
     ],
     createdAt: {

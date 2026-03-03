@@ -157,6 +157,7 @@ router.post('/:id/submit', isUser, async (req, res) => {
                 questionText: q.text,
                 options: q.options,
                 correctOptionIndex: q.correctOptionIndex,
+                explanation: q.explanation,
                 userSelectedOption: userAns && typeof userAns.selectedOption === 'number' ? userAns.selectedOption : null
             };
         });
