@@ -40,7 +40,7 @@ router.get('/admin', isAdmin, async (req, res) => {
 // 3. GET /api/mock/:id - Get a single mock for test taking
 router.get('/:id', async (req, res) => {
     try {
-        const mock = await Mock.findById(req.params.id).select('-questions.correctOptionIndex');
+        const mock = await Mock.findById(req.params.id);
         if (!mock || !mock.isActive) return res.status(404).json({ error: 'Mock not found' });
         res.json(mock);
     } catch (err) {
@@ -151,6 +151,16 @@ router.post('/:id/submit', isUser, async (req, res) => {
             await user.save();
         }
 
+        const detailedResults = mock.questions.map((q, index) => {
+            const userAns = answers.find(a => String(a.questionIndex) === String(index));
+            return {
+                questionText: q.text,
+                options: q.options,
+                correctOptionIndex: q.correctOptionIndex,
+                userSelectedOption: userAns && typeof userAns.selectedOption === 'number' ? userAns.selectedOption : null
+            };
+        });
+
         res.json({
             message: 'Test submitted successfully',
             result: {
@@ -160,7 +170,8 @@ router.post('/:id/submit', isUser, async (req, res) => {
                 unanswered,
                 totalQuestions: mock.questions.length,
                 positiveMarks: mock.positiveMarks,
-                negativeMarks: mock.negativeMarks
+                negativeMarks: mock.negativeMarks,
+                detailedResults
             }
         });
 
