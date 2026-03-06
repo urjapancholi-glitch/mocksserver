@@ -23,6 +23,17 @@ const MockSchema = new mongoose.Schema({
         required: true,
         default: 1
     },
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category'
+    },
+    subCategory: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category'
+    },
+    instructions: [{
+        type: String
+    }],
     isActive: {
         type: Boolean,
         default: true

@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const mockRoutes = require('./routes/mock');
+const categoryRoutes = require('./routes/category');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(bodyParser.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/mock', mockRoutes);
+app.use('/api/categories', categoryRoutes);
 
 app.get('/', (req, res) => {
     res.send('Mock Platform API running');
