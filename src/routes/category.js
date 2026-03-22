@@ -12,7 +12,7 @@ const isAdmin = (req, res, next) => {
 // GET all categories
 router.get('/', async (req, res) => {
     try {
-        const categories = await Category.find();
+        const categories = await Category.find().sort({ name: 1 });
         res.json(categories);
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch categories' });

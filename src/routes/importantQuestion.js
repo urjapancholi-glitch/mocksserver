@@ -7,7 +7,7 @@ const ImportantQuestion = require('../models/ImportantQuestion');
 // @access  Public
 router.get('/', async (req, res) => {
     try {
-        const questions = await ImportantQuestion.find().sort({ createdAt: -1 });
+        const questions = await ImportantQuestion.find().sort({ title: 1 });
         res.json(questions);
     } catch (err) {
         console.error(err.message);

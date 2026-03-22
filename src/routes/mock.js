@@ -20,7 +20,7 @@ const isAdmin = (req, res, next) => {
 router.get('/', async (req, res) => {
     try {
         // Excluding correctOptionIndex so users can't cheat by looking at payload
-        const mocks = await Mock.find({ isActive: true }).select('-questions.correctOptionIndex');
+        const mocks = await Mock.find({ isActive: true }).sort({ title: 1 }).select('-questions.correctOptionIndex');
         res.json(mocks);
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch mocks' });
@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
 // 2. GET /api/mock/admin - Get all mocks including answers (Admin)
 router.get('/admin', isAdmin, async (req, res) => {
     try {
-        const mocks = await Mock.find();
+        const mocks = await Mock.find().sort({ title: 1 });
         res.json(mocks);
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch mocks' });
